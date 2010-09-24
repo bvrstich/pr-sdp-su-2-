@@ -12,6 +12,7 @@ class SUP;
 class PHM;
 class DPM;
 class PPHM;
+class Lineq;
 
 /**
  * @author Brecht Verstichel
@@ -68,21 +69,25 @@ class TPM : public BlockMatrix {
       //overlapmatrix afbeelding en zijn inverse
       void S(int option,TPM &);
 
-      void unit();
+      void init();
+
+      void set_unit();
+
+      void set_S_2();
 
       void proj_Tr();
 
       //de hessiaan afbeelding:
-      void H(TPM &b,SUP &D);
+      void H(TPM &b,SUP &D,const Lineq &);
 
       //los het stelsel op
-      int solve(TPM &b,SUP &D);
+      int solve(TPM &b,SUP &D,const Lineq &);
 
       void min_unit(double scale);
 
       void min_qunit(double scale);
 
-      void collaps(int option,SUP &);
+      void collaps(int option,SUP &,const Lineq &);
 
       void sp_pairing(double );
 
@@ -106,15 +111,17 @@ class TPM : public BlockMatrix {
       //return the spin
       double spin();
 
-      void constr_grad(double t,TPM &,SUP &);
+      void constr_grad(double t,TPM &,SUP &,const Lineq &);
 
-      int solve(double t,SUP &,TPM &);
+      int solve(double t,SUP &,TPM &,const Lineq &);
 
       double line_search(double t,SUP &P,TPM &ham);
 
       double line_search(double t,TPM &,TPM &);
 
-      void H(double t,TPM &b,SUP &P);
+      void H(double t,TPM &b,SUP &P,const Lineq &lineq);
+
+      void proj_E(int option,const Lineq &);
 
 
    private:

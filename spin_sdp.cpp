@@ -37,13 +37,16 @@ int main(void){
    const int M = 8;//dim sp hilbert space
    const int N = 4;//nr of particles
 
+   //linear equalities object
+   Lineq lineq(M,N);
+
    //hamiltoniaan
    TPM ham(M,N);
 
    ham.hubbard(1.0);
 
    TPM rdm(M,N);
-   rdm.unit();
+   rdm.init();
 
    TPM backup_rdm(rdm);
 
@@ -70,13 +73,13 @@ int main(void){
          //eerst -gradient aanmaken:
          TPM grad(M,N);
 
-         grad.constr_grad(t,ham,P);
+         grad.constr_grad(t,ham,P,lineq);
 
          //dit wordt de stap:
          TPM delta(M,N);
 
          //los het hessiaan stelsel op:
-         cout << delta.solve(t,P,grad) << endl;
+         cout << delta.solve(t,P,grad,lineq) << endl;
 
          //line search
          double a = delta.line_search(t,P,ham);

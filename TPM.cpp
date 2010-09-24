@@ -494,7 +494,7 @@ void TPM::Q(int option,double A,double B,double C,TPM &tpm_d){
 /**
  * initialize this onto the unitmatrix with trace N*(N - 1)/2
  */
-void TPM::unit(){
+void TPM::init(){
 
    double ward = N*(N - 1.0)/(M*(M - 1.0));
 
@@ -512,14 +512,46 @@ void TPM::unit(){
 
 }
 
+void TPM::set_unit(){
+
+   for(int S = 0;S < 2;++S){
+
+      for(int i = 0;i < this->gdim(S);++i){
+
+         (*this)(S,i,i) = 1.0;
+
+         for(int j = i + 1;j < this->gdim(S);++j)
+            (*this)(S,i,j) = (*this)(S,j,i) = 0.0;
+
+      }
+   }
+
+}
+
 /**
- * orthogonal projection onto the space of traceless matrices
+ * fill the TPM object with the S^2 matrix: diagonal matrix in coupled tp space.
  */
-void TPM::proj_Tr(){
+void TPM::set_S_2(){
 
-   double ward = (2.0 * this->trace())/(M*(M - 1));
+   //S = 0 block
+   for(int i = 0;i < gdim(0);++i){
 
-   this->min_unit(ward);
+      (*this)(0,i,i) = -1.5 * (N - 2.0)/(N - 1.0);
+
+      for(int j = i + 1;j < gdim(0);++j)
+         (*this)(0,i,j) = (*this)(0,j,i) = 0.0;
+
+   }
+
+   //S = 1 block
+   for(int i = 0;i < this->gdim(1);++i){
+
+      (*this)(1,i,i) = -1.5 * (N - 2.0)/(N - 1.0) + 2.0;
+
+      for(int j = i + 1;j < gdim(1);++j)
+         (*this)(1,i,j) = (*this)(1,j,i) = 0.0;
+
+   }
 
 }
 
@@ -529,8 +561,9 @@ void TPM::proj_Tr(){
  * with D_1, D_2, D_3, D_4 and D_5 the P, Q, G, T1 and T2 blocks of the SUP D. 
  * @param b TPM domain matrix, hessian will act on it and the image will be put in this
  * @param D SUP matrix that defines the structure of the hessian map. (see primal-dual.pdf for more info)
+ * @param lineq The object containing all the linear equality constraints
  */
-void TPM::H(TPM &b,SUP &D){
+void TPM::H(TPM &b,SUP &D,const Lineq &lineq){
 
    this->L_map(D.tpm(0),b);
 
@@ -596,7 +629,8 @@ void TPM::H(TPM &b,SUP &D){
 
 #endif
 
-   this->proj_Tr();
+   //project on the constraints
+   this->proj_E(0,lineq);
 
 }
 
@@ -681,8 +715,9 @@ void TPM::min_qunit(double scale){
  * sum_i Tr (S u^i)f^i = this
  * @param option = 0, project onto full symmetric matrix space, = 1 project onto traceless symmetric matrix space
  * @param S input SUP
+ * @param lineq The object containing all the linear equality constraints
  */
-void TPM::collaps(int option,SUP &S){
+void TPM::collaps(int option,SUP &S,const Lineq &lineq){
 
    *this = S.tpm(0);
 
@@ -717,7 +752,7 @@ void TPM::collaps(int option,SUP &S){
 #endif
 
    if(option == 1)
-      this->proj_Tr();
+      this->proj_E(0,lineq);
 
 }
 
@@ -1142,8 +1177,9 @@ double TPM::spin(){
  * @param t scaling factor of the potential
  * @param ham Hamiltonian of the current problem
  * @param P SUP matrix containing the inverse of the constraint matrices (carrier space matrices).
+ * @param lineq The object containing all the linear equality constraints
  */
-void TPM::constr_grad(double t,TPM &ham,SUP &P){
+void TPM::constr_grad(double t,TPM &ham,SUP &P,const Lineq &lineq){
 
    //eerst P conditie 
    *this = P.tpm(0);
@@ -1191,7 +1227,7 @@ void TPM::constr_grad(double t,TPM &ham,SUP &P){
 
    *this -= ham;
 
-   this->proj_Tr();
+   this->proj_E(0,lineq);
 
 }
 
@@ -1202,7 +1238,7 @@ void TPM::constr_grad(double t,TPM &ham,SUP &P){
  * @param b right hand side (the gradient constructed int TPM::constr_grad)
  * @return nr of iterations needed to converge to the desired accuracy
  */
-int TPM::solve(double t,SUP &P,TPM &b){
+int TPM::solve(double t,SUP &P,TPM &b,const Lineq &lineq){
 
    int iter = 0;
 
@@ -1222,7 +1258,7 @@ int TPM::solve(double t,SUP &P,TPM &b){
 
    while(rr > 1.0e-7){ 
 
-      Hb.H(t,b,P);
+      Hb.H(t,b,P,lineq);
 
       ward = rr/b.ddot(Hb);
 
@@ -1306,8 +1342,9 @@ double TPM::line_search(double t,SUP &P,TPM &ham){
  * @param t potential scaling factor
  * @param b the TPM on which the hamiltonian will work, the image will be put in (*this)
  * @param P the SUP matrix containing the constraints, (can be seen as the metric).
+ * @param lineq The object containing all the linear equality constraints
  */
-void TPM::H(double t,TPM &b,SUP &P){
+void TPM::H(double t,TPM &b,SUP &P,const Lineq &lineq){
 
    //eerst de P conditie:
 
@@ -1394,7 +1431,7 @@ void TPM::H(double t,TPM &b,SUP &P){
    this->dscal(t);
 
    //en projecteren op spoorloze ruimte
-   this->proj_Tr();
+   this->proj_E(0,lineq);
 
 }
 
@@ -1414,5 +1451,27 @@ double TPM::line_search(double t,TPM &rdm,TPM &ham){
    P.invert();
 
    return this->line_search(t,P,ham);
+
+}
+
+/**
+ * project the TPM object onto a space where (option == 0) Tr (Gamma' E) = 0, or (option == 1) Tr (Gamma' E) = e
+ * @param option project onto (option = 0) 0 or (option = 1) e
+ * @param lineq The object containing the linear constraints
+ */
+void TPM::proj_E(int option,const Lineq &lineq){
+
+   double ward;
+
+   for(int i = 0;i < lineq.gnr();++i){
+
+      if(option == 1)
+         ward = this->ddot(lineq.gE_ortho(i)) - lineq.ge_ortho(i);//Tr(Gamma E~) - e~
+      else
+         ward = this->ddot(lineq.gE_ortho(i));
+
+      this->daxpy(-ward,lineq.gE_ortho(i));
+
+   }
 
 }

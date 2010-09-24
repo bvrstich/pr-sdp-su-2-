@@ -50,3 +50,5 @@
 
 #include "SUP.h"
 #include "EIG.h"
+
+#include "Lineq.h"
