@@ -69,7 +69,7 @@ class TPM : public BlockMatrix {
       //overlapmatrix afbeelding en zijn inverse
       void S(int option,TPM &);
 
-      void init();
+      void init(const Lineq &);
 
       void set_unit();
 

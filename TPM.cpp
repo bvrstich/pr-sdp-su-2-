@@ -492,23 +492,16 @@ void TPM::Q(int option,double A,double B,double C,TPM &tpm_d){
 }
 
 /**
- * initialize this onto the unitmatrix with trace N*(N - 1)/2
+ * Initializes the TPM on the a unit matrix with trace N*(N - 1)/2, i.e. the number of tp pairs
+ * @param lineq object containing the linear equalities, to make sure the initial rdm satisfies them all.
  */
-void TPM::init(){
+void TPM::init(const Lineq &lineq){
 
-   double ward = N*(N - 1.0)/(M*(M - 1.0));
+   //init
+   *this = 0;
 
-   for(int S = 0;S < 2;++S){
-
-      for(int i = 0;i < this->gdim(S);++i){
-
-         (*this)(S,i,i) = ward;
-
-         for(int j = i + 1;j < this->gdim(S);++j)
-            (*this)(S,i,j) = (*this)(S,j,i) = 0.0;
-
-      }
-   }
+   for(int i = 0;i < lineq.gnr();++i)
+      this->daxpy(lineq.ge_ortho(i),lineq.gE_ortho(i));
 
 }
 

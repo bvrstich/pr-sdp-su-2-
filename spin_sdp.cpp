@@ -38,7 +38,7 @@ int main(void){
    const int N = 4;//nr of particles
 
    //linear equalities object
-   Lineq lineq(M,N);
+   Lineq lineq(M,N,1.0);
 
    //hamiltoniaan
    TPM ham(M,N);
@@ -46,7 +46,7 @@ int main(void){
    ham.hubbard(1.0);
 
    TPM rdm(M,N);
-   rdm.init();
+   rdm.init(lineq);
 
    TPM backup_rdm(rdm);
 
@@ -112,6 +112,11 @@ int main(void){
       rdm.daxpy(a,extrapol);
 
    }
+
+   cout << endl;
+   cout << "Energy = \t" << rdm.ddot(ham) << endl;
+   cout << endl;
+   cout << "S^2 = \t" << rdm.spin() << endl;
 
    return 0;
 }
