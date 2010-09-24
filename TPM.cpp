@@ -492,34 +492,42 @@ void TPM::Q(int option,double A,double B,double C,TPM &tpm_d){
 }
 
 /**
- * initialize this onto the unitmatrix with trace N*(N - 1)/2
+ * initialize onto the TPM with S = 0 block empty and unit times trace in the S = 1 block
  */
-void TPM::unit(){
+void TPM::init(){
 
-   double ward = N*(N - 1.0)/(M*(M - 1.0));
+   double ward = N*(N - 1.0)/(M/2*(M/2 - 1.0))/3.0;
 
-   for(int S = 0;S < 2;++S){
 
-      for(int i = 0;i < this->gdim(S);++i){
+   for(int i = 0;i < gdim(0);++i)
+      for(int j = 0;j < gdim(0);++j)
+         (*this)(0,i,j) = 0.0;
 
-         (*this)(S,i,i) = ward;
 
-         for(int j = i + 1;j < this->gdim(S);++j)
-            (*this)(S,i,j) = (*this)(S,j,i) = 0.0;
+   for(int i = 0;i < gdim(1);++i){
 
-      }
+      (*this)(1,i,i) = ward;
+
+      for(int j = i + 1;j < gdim(1);++j)
+         (*this)(1,i,j) = (*this)(1,j,i) = 0.0;
+
    }
 
 }
 
 /**
- * orthogonal projection onto the space of traceless matrices
+ * orthogonal projection onto the space of traceless matrices of S_max (so with S = 0 with zero entries)
  */
-void TPM::proj_Tr(){
+void TPM::proj_E(){
 
-   double ward = (2.0 * this->trace())/(M*(M - 1));
+   //first put the S = 0 block to zero
+   (*this)[0] = 0;
 
-   this->min_unit(ward);
+   //then make the S = 1 block traceless
+   double ward = 2 * this->trace()/(M/2*(M/2 - 1))/3.0;
+
+   for(int i = 0;i < gdim(1);++i)
+      (*this)(1,i,i) -= ward;
 
 }
 
@@ -596,7 +604,7 @@ void TPM::H(TPM &b,SUP &D){
 
 #endif
 
-   this->proj_Tr();
+   this->proj_E();
 
 }
 
@@ -637,7 +645,7 @@ void TPM::S(int option,TPM &tpm_d){
 #endif
 
 #ifdef __T2_CON
-   
+
    a += 5.0*M - 8.0;
    b += 2.0/(N - 1.0);
    c += (2.0*N*N + (M - 2.0)*(4.0*N - 3.0) - M*M)/(2.0*(N - 1.0)*(N - 1.0));
@@ -645,34 +653,6 @@ void TPM::S(int option,TPM &tpm_d){
 #endif
 
    this->Q(option,a,b,c,tpm_d);
-
-}
-
-/**
- * Deduct the unitmatrix times a constant (scale) from this.\n\n
- * this -= scale* 1
- * @param scale the constant
- */
-void TPM::min_unit(double scale){
-
-   for(int S = 0;S < 2;++S)
-      for(int i = 0;i < this->gdim(S);++i)
-         (*this)(S,i,i) -= scale;
-
-}
-
-/**
- * Deduct from this - de Q-map of the unit-matrix  times a constante (scale):\n\n
- * this -= scale* Q(1)
- * @param scale the constant
- */
-void TPM::min_qunit(double scale){
-
-   double q = 1.0 + (M - 2*N)*(M - 1.0)/(N*(N - 1.0));
-
-   scale *= q;
-
-   this->min_unit(scale);
 
 }
 
@@ -709,7 +689,7 @@ void TPM::collaps(int option,SUP &S){
 #endif
 
 #ifdef __T2_CON
-   
+
    hulp.T(S.pphm());
 
    *this += hulp;
@@ -717,7 +697,7 @@ void TPM::collaps(int option,SUP &S){
 #endif
 
    if(option == 1)
-      this->proj_Tr();
+      this->proj_E();
 
 }
 
@@ -1035,7 +1015,7 @@ void TPM::bar(PPHM &pphm){
       }
 
    }
-   
+
    this->symmetrize();
 
 }
@@ -1191,7 +1171,7 @@ void TPM::constr_grad(double t,TPM &ham,SUP &P){
 
    *this -= ham;
 
-   this->proj_Tr();
+   this->proj_E();
 
 }
 
@@ -1335,7 +1315,7 @@ void TPM::H(double t,TPM &b,SUP &P){
 #endif
 
    //de G conditie toevoegen:
-   
+
 #ifdef __G_CON
 
    //hulpje voor het PHM stuk
@@ -1355,7 +1335,7 @@ void TPM::H(double t,TPM &b,SUP &P){
    *this += hulp;
 
 #endif
-   
+
    //de T_1 conditie toevoegen
 
 #ifdef __T1_CON
@@ -1394,7 +1374,7 @@ void TPM::H(double t,TPM &b,SUP &P){
    this->dscal(t);
 
    //en projecteren op spoorloze ruimte
-   this->proj_Tr();
+   this->proj_E();
 
 }
 
@@ -1414,5 +1394,14 @@ double TPM::line_search(double t,TPM &rdm,TPM &ham){
    P.invert();
 
    return this->line_search(t,P,ham);
+
+}
+
+/**
+ * method specific for the S = MAX program, inverts only the S = 1 block
+ */
+void TPM::pseudo_invert(){
+
+   (*this)[1].invert();
 
 }

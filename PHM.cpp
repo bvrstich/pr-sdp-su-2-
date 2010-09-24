@@ -268,45 +268,6 @@ void PHM::G(TPM &tpm){
 }
 
 /**
- * Calculate the skew trace, defined as:\n\n
- * sum_{a s_a b s_b} PHM(a s_a,a s_a,b s_b,b s_b) = 2 * sum_{ab} PHM(0,a,a,b,b)
- * @return the skew trace
- */
-double PHM::skew_trace(){
-
-   double ward = 0.0;
-
-   for(int a = 0;a < M/2;++a)
-      for(int b = 0;b < M/2;++b)
-         ward += (*this)(0,a,a,b,b);
-
-   return 2.0*ward;
-
-}
-
-/**
- * Deduct from this the G-map of the unit matrix times a constant (scale)\n\n
- * this -= scale* G(1) \n\n
- * see notes primal_dual.pdf for more information.
- * @param scale the constant
- */
-void PHM::min_gunit(double scale){
-
-   for(int a = 0;a < M/2;++a)
-      for(int b = 0;b < M/2;++b)
-         (*this)(0,a,a,b,b) -= 2.0*scale;
-
-   double g = (M - N)/(N - 1.0);
-
-   scale *= g;
-
-   for(int S = 0;S < 2;++S)
-      for(int i = 0;i < this->gdim(S);++i)
-         (*this)(S,i,i) -= scale;
-
-}
-
-/**
  * The bar function that maps a PPHM object onto a PHM object by tracing away the first pair of incdices of the PPHM
  * @param pphm Input PPHM object
  */

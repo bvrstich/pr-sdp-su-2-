@@ -68,19 +68,15 @@ class TPM : public BlockMatrix {
       //overlapmatrix afbeelding en zijn inverse
       void S(int option,TPM &);
 
-      void unit();
+      void init();
 
-      void proj_Tr();
+      void proj_E();
 
       //de hessiaan afbeelding:
       void H(TPM &b,SUP &D);
 
       //los het stelsel op
       int solve(TPM &b,SUP &D);
-
-      void min_unit(double scale);
-
-      void min_qunit(double scale);
 
       void collaps(int option,SUP &);
 
@@ -115,6 +111,8 @@ class TPM : public BlockMatrix {
       double line_search(double t,TPM &,TPM &);
 
       void H(double t,TPM &b,SUP &P);
+
+      void pseudo_invert();
 
 
    private:

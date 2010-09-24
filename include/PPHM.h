@@ -58,10 +58,6 @@ class PPHM : public BlockMatrix {
       //maak een PPHM van een TPM via de T2 conditie
       void T(TPM &);
 
-      void min_tunit(double );
-
-      double skew_trace();
-
    private:
 
       //!static counter that counts the number of PPHM objects running in the program

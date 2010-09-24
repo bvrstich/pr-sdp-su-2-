@@ -98,12 +98,6 @@ class SUP{
 
       TPM &tpm(int i);
 
-      //initialiseer S
-      void init_S();
-
-      //initialiseer Z
-      void init_Z(double alpha,TPM &ham,SUP &u_0);
-
       int gN();
 
       int gM();
@@ -118,13 +112,6 @@ class SUP{
 
       void dscal(double alpha);
 
-      void proj_U();
-
-      void proj_C(TPM &);
-
-      //maak de matrix D, nodig voor de hessiaan van het stelsel
-      void D(SUP &S,SUP &Z);
-
       //positieve of negatieve vierkantswortel uit een supermatrix
       void sqrt(int option);
 
@@ -134,27 +121,11 @@ class SUP{
 
       double trace();
 
-      double U_trace();
-
-      void proj_C();
-
       SUP &mprod(SUP &,SUP &);
 
       void fill(TPM &);
 
       void fill();
-
-      int solve(SUP &B,SUP &D);
-
-      void H(SUP &B,SUP &D);
-
-      void proj_U_Tr();
-
-      double U_norm();
-
-      double center_dev(SUP &Z);
-
-      double line_search(SUP &DZ,SUP &S,SUP &Z,double max_dev);
 
       void fill_Random();
 

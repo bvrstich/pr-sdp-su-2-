@@ -54,10 +54,6 @@ class PHM : public BlockMatrix {
 
       void G(TPM &);
 
-      double skew_trace();
-
-      void min_gunit(double scale);
-
       void uncouple(const char *filename);
 
       //trace the first pair of indices of a PPHM object
