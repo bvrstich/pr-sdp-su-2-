@@ -1416,3 +1416,36 @@ double TPM::line_search(double t,TPM &rdm,TPM &ham){
    return this->line_search(t,P,ham);
 
 }
+
+/**
+ * Construct the operator P for which Tr (P Gamma) = rho_{l l}
+ * @param lambda the diagonal element of the SPM we want.
+ */
+void TPM::constr_sp_diag(int l){
+
+   (*this) = 0.0;
+
+   double ward = 0.5/(N - 1.0);
+
+   int a,b;
+
+   for(int S = 0;S < 2;++S){
+
+      for(int i = 0;i < gdim(S);++i){
+
+         a = t2s[S][i][0];
+         b = t2s[S][i][1];
+
+         if(a == l)
+            (*this)(S,i,i) += ward;
+
+         if(b == l)
+            (*this)(S,i,i) += ward;
+
+      }
+
+   }
+
+   this->symmetrize();
+
+}

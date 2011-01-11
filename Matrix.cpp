@@ -282,13 +282,13 @@ void Matrix::dscal(double alpha){
  */
 void Matrix::fill_Random(){
 
+   srand(time(NULL));
+
    for(int i = 0;i < n;++i)
       for(int j = i;j < n;++j)
          matrix[j][i] = (double) rand()/RAND_MAX;
 
-   for(int i = 0;i < n;++i)
-      for(int j = i + 1;j < n;++j)
-         matrix[i][j] = matrix[j][i];
+   this->symmetrize();
 
 }
 

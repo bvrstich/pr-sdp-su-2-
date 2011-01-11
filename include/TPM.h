@@ -116,6 +116,8 @@ class TPM : public BlockMatrix {
 
       void H(double t,TPM &b,SUP &P);
 
+      void constr_sp_diag(int);
+
 
    private:
 
