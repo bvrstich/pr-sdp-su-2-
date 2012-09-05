@@ -34,8 +34,8 @@ int main(void){
 
    cout.precision(10);
 
-   const int M = 8;//dim sp hilbert space
-   const int N = 4;//nr of particles
+   const int M = 12;//dim sp hilbert space
+   const int N = 6;//nr of particles
 
    //hamiltoniaan
    TPM ham(M,N);
@@ -53,9 +53,12 @@ int main(void){
    //outer iteration: scaling of the potential barrier
    while(t > 1.0e-12){
 
-      cout << t << "\t" << rdm.trace() << "\t" << rdm.ddot(ham) << endl;
+      cout << t << "\t" << rdm.trace() << "\t" << rdm.ddot(ham) << "\t";
 
       double convergence = 1.0;
+
+      int iter_cg = 0;
+      int iter = 0;
 
       //inner iteration: 
       //Newton's method for finding the minimum of the current potential
@@ -76,7 +79,7 @@ int main(void){
          TPM delta(M,N);
 
          //los het hessiaan stelsel op:
-         cout << delta.solve(t,P,grad) << endl;
+         iter_cg += delta.solve(t,P,grad);
 
          //line search
          double a = delta.line_search(t,P,ham);
@@ -86,7 +89,11 @@ int main(void){
 
          convergence = a*a*delta.ddot(delta);
 
+         ++iter;
+
       }
+
+      cout << iter << "\t" << iter_cg << endl;
 
       t /= 2.0;
 
