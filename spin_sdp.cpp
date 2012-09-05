@@ -1,8 +1,8 @@
 /**
  * @mainpage 
  * This is an implementation of the spinsymmetrical, dual only, potential reduction interior point method
- * for optimizing the second order density matrix using the P, Q, G, T1 and T2 N-representability conditions.
- * Compiling can be done with the options PQ, PQG, PQGT1, PQGT2 and PQGT (for all conditions active) with logical consequences for the program.
+ * for optimizing the second order density matrix using the P, Q, G, T1 and T2' N-representability conditions.
+ * Compiling can be done with the options PQ, PQG, PQGT1, PQGT (for all conditions active) with logical consequences for the program.
  * @author Brecht Verstichel, Ward Poelmans
  * @date 22-02-2010
  */
@@ -118,4 +118,5 @@ int main(void){
    }
 
    return 0;
+
 }

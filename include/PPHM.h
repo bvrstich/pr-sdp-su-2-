@@ -45,7 +45,11 @@ class PPHM : public BlockMatrix {
       using BlockMatrix::operator();
 
       //easy to access the numbers, in sp mode
-      double operator()(int S,int S_ab,int a,int b,int c,int S_de,int d,int e,int f) const;
+      double pph(int S,int S_ab,int a,int b,int c,int S_de,int d,int e,int f) const;
+
+      double w(int S_ab,int a,int b,int c,int n) const;
+
+      double sp(int m,int n) const;
 
       static int get_inco(int S,int S_ab,int a,int b,int c,int &i);
 

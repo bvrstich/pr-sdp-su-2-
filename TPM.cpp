@@ -1027,7 +1027,7 @@ void TPM::bar(PPHM &pphm){
                ward = (2.0*(S + 0.5) + 1.0)/(2.0*Z + 1.0);
 
                for(int l = 0;l < M/2;++l)
-                  (*this)(Z,i,j) += ward * pphm(S,Z,a,b,l,Z,c,d,l);
+                  (*this)(Z,i,j) += ward * pphm.pph(S,Z,a,b,l,Z,c,d,l);
 
             }
 
@@ -1061,7 +1061,7 @@ void TPM::T(PPHM &pphm){
    int a,b,c,d;
    int sign;
 
-   double norm;
+   double norm_ab,norm_cd;
 
    for(int S = 0;S < 2;++S){
 
@@ -1078,37 +1078,45 @@ void TPM::T(PPHM &pphm){
             d = t2s[S][j][1];
 
             //determine the norm for the basisset
-            norm = 1.0;
+            norm_ab = 1.0;
+            norm_cd = 1.0;
 
             if(S == 0){
 
                if(a == b)
-                  norm /= std::sqrt(2.0);
+                  norm_ab /= std::sqrt(2.0);
 
                if(c == d)
-                  norm /= std::sqrt(2.0);
+                  norm_cd /= std::sqrt(2.0);
 
             }
 
             //first the tp part
-            (*this)(S,i,j) = tpm(S,i,j);
+            (*this)(S,i,j) = tpm(S,i,j) - std::sqrt(2.0/(2.0*S + 1.0)) * ( norm_cd * (pphm.w(S,a,b,c,d) + sign * pphm.w(S,a,b,d,c))
+            
+                  + norm_ab * (pphm.w(S,c,d,a,b) + sign * pphm.w(S,c,d,b,a)) );
 
             //sp part, 4 terms:
             if(b == d)
-               (*this)(S,i,j) += norm * spm(a,c);
+               (*this)(S,i,j) += norm_ab * norm_cd * ( spm(a,c) + pphm.sp(a,c) / (N - 1.0) );
 
             if(a == d)
-               (*this)(S,i,j) += sign * norm * spm(b,c);
+               (*this)(S,i,j) += sign * norm_ab * norm_cd * ( spm(b,c) + pphm.sp(b,c) / (N - 1.0) );
 
             if(b == c)
-               (*this)(S,i,j) += sign * norm * spm(a,d);
+               (*this)(S,i,j) += sign * norm_ab * norm_cd * ( spm(a,d) + pphm.sp(a,d) / (N - 1.0) );
 
             if(a == c)
-               (*this)(S,i,j) += norm * spm(b,d);
+               (*this)(S,i,j) += norm_ab * norm_cd * ( spm(b,d) + pphm.sp(b,d) / (N - 1.0) );
 
             //ph part:
-            for(int Z = 0;Z < 2;++Z)
-               (*this)(S,i,j) -= norm * (2.0 * Z + 1.0) * _6j[S][Z] * ( phm(Z,d,a,b,c) + sign * phm(Z,d,b,a,c) + sign * phm(Z,c,a,b,d) + phm(Z,c,b,a,d) );
+            for(int Z = 0;Z < 2;++Z){
+
+               (*this)(S,i,j) -= norm_ab * norm_cd * (2.0 * Z + 1.0) * _6j[S][Z]
+               
+                  * ( phm(Z,d,a,b,c) + sign * phm(Z,d,b,a,c) + sign * phm(Z,c,a,b,d) + phm(Z,c,b,a,d) );
+
+            }
 
          }
       }

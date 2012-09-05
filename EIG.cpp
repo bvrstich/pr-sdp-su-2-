@@ -43,7 +43,7 @@ EIG::EIG(SUP &SZ){
 
 #ifdef __T2_CON
    
-   dim += M*M*(M - 1)/2;
+   dim += M*M*(M - 1)/2 + M;
 
    v_pph = new BlockVector<PPHM>(SZ.pphm());
 
